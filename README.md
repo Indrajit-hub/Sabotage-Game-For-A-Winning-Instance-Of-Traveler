@@ -22,7 +22,11 @@ The NuSMV model represents the game state, transitions, and specifications.
 
 ## Important cmd
 ./NuSMV -int
+
 NuSMV > read_model -i /teamspace/studios/this_studio/svpasg/asg2/asg23.smv   ---replace with your file location
+
 NuSMV > go
+
 NuSMV > check_ltlspec
+
 
