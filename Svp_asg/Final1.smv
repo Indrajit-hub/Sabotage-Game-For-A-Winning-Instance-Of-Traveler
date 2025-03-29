@@ -1,0 +1,109 @@
+MODULE main
+VAR
+
+    --second one is "Demon must delete exactly one edge unless no edges remain"
+    -- This code is "Demon must delete exactly one edge unless no edges remain"
+    -- The graph is K4 with vertices labeled 1, 2, 3, 4
+    -- edges are represented as pairs (i, j) where i < j
+    edge12 : boolean; -- edge between vertex 1 and 2
+    edge13 : boolean; -- edge between vertex 1 and 3
+    edge14 : boolean; -- edge between vertex 1 and 4
+    edge23 : boolean; -- edge between vertex 2 and 3
+    edge24 : boolean; -- edge between vertex 2 and 4
+    edge34 : boolean; -- edge between vertex 3 and 4
+
+    -- Current position of the Traveler
+    traveler : {1, 2, 3, 4};
+
+    -- Turn: 0 for Traveler, 1 for Demon
+    turn : {0, 1};
+
+DEFINE
+    -- Total number of edges remaining
+    remaining_edges := toint(edge12) + toint(edge13) + toint(edge14) +
+                       toint(edge23) + toint(edge24) + toint(edge34);
+
+TRANS
+    -- Demon must delete exactly one edge unless no edges remain
+    (turn = 1 & remaining_edges > 0) -> 
+        ( (next(edge12) != edge12 & next(edge13) = edge13 & next(edge14) = edge14 &
+          next(edge23) = edge23 & next(edge24) = edge24 & next(edge34) = edge34 )
+        |
+        ( next(edge12) = edge12 & next(edge13) != edge13 & next(edge14) = edge14 &
+          next(edge23) = edge23 & next(edge24) = edge24 & next(edge34) = edge34 )
+        |
+        ( next(edge12) = edge12 & next(edge13) = edge13 & next(edge14) != edge14 &
+          next(edge23) = edge23 & next(edge24) = edge24 & next(edge34) = edge34 )
+        |
+        ( next(edge12) = edge12 & next(edge13) = edge13 & next(edge14) = edge14 &
+          next(edge23) != edge23 & next(edge24) = edge24 & next(edge34) = edge34 )
+        |
+        ( next(edge12) = edge12 & next(edge13) = edge13 & next(edge14) = edge14 &
+          next(edge23) = edge23 & next(edge24) != edge24 & next(edge34) = edge34 )
+        |
+        ( next(edge12) = edge12 & next(edge13) = edge13 & next(edge14) = edge14 &
+          next(edge23) = edge23 & next(edge24) = edge24 & next(edge34) != edge34 ));
+
+ASSIGN
+    -- Initial state: all edges are present, Traveler starts at vertex 1
+    init(edge12) := TRUE;
+    init(edge13) := TRUE;
+    init(edge14) := TRUE;
+    init(edge23) := TRUE;
+    init(edge24) := TRUE;
+    init(edge34) := TRUE;
+    init(traveler) := 1;
+    init(turn) := 0;
+
+    -- Traveler's move: can stay or move to an adjacent vertex
+    next(traveler) := case
+        turn = 0 & traveler = 1 & edge12 : 2;
+        turn = 0 & traveler = 1 & edge13 : 3;
+        turn = 0 & traveler = 1 & edge14 : 4;
+        turn = 0 & traveler = 2 & edge12 : 1;
+        turn = 0 & traveler = 2 & edge23 : 3;
+        turn = 0 & traveler = 2 & edge24 : 4;
+        turn = 0 & traveler = 3 & edge13 : 1;
+        turn = 0 & traveler = 3 & edge23 : 2;
+        turn = 0 & traveler = 3 & edge34 : 4;
+        turn = 0 & traveler = 4 & edge14 : 1;
+        turn = 0 & traveler = 4 & edge24 : 2;
+        turn = 0 & traveler = 4 & edge34 : 3;
+        TRUE : traveler; -- Stay in the same position
+    esac;
+
+    -- Demon's move: must delete exactly one edge unless no edges remain
+    next(edge12) := case
+        turn = 1 & edge12 : {TRUE, FALSE};
+        TRUE : edge12;
+    esac;
+    next(edge13) := case
+        turn = 1 & edge13 : {TRUE, FALSE};
+        TRUE : edge13;
+    esac;
+    next(edge14) := case
+        turn = 1 & edge14 : {TRUE, FALSE};
+        TRUE : edge14;
+    esac;
+    next(edge23) := case
+        turn = 1 & edge23 : {TRUE, FALSE};
+        TRUE : edge23;
+    esac;
+    next(edge24) := case
+        turn = 1 & edge24 : {TRUE, FALSE};
+        TRUE : edge24;
+    esac;
+    next(edge34) := case
+        turn = 1 & edge34 : {TRUE, FALSE};
+        TRUE : edge34;
+    esac;
+
+    -- Switch turns
+    next(turn) := case
+        turn = 0 : 1;
+        turn = 1 : 0;
+    esac;
+
+-- Specification to check if Traveler can reach vertex 4
+CTLSPEC
+    !EF (traveler = 4);
