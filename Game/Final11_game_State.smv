@@ -1,0 +1,140 @@
+MODULE main
+VAR
+
+    -- This code is "Demon must delete an edge unless no edges remain but not atmost one edge; he may delete more than one."    
+    -- The graph is K4 with vertices labeled 1, 2, 3, 4
+    -- edges are represented as pairs (i, j) where i < j
+    edge12 : boolean; -- edge between vertex 1 and 2
+    edge13 : boolean; -- edge between vertex 1 and 3
+    edge14 : boolean; -- edge between vertex 1 and 4
+    edge23 : boolean; -- edge between vertex 2 and 3
+    edge24 : boolean; -- edge between vertex 2 and 4
+    edge34 : boolean; -- edge between vertex 3 and 4
+
+    -- Current position of the Traveler
+    traveler : {1, 2, 3, 4};
+
+    -- Turn: 0 for Traveler, 1 for Demon
+    turn : {0, 1};
+
+    -- Game state: 0 for ongoing, 1 for Traveler win, 2 for Demon win
+    game_state : {0, 1, 2};
+
+DEFINE
+    -- Total number of edges remaining
+    remaining_edges := toint(edge12) + toint(edge13) + toint(edge14) +
+                       toint(edge23) + toint(edge24) + toint(edge34);
+
+    -- Traveler wins if they reach vertex 4
+    traveler_wins := traveler = 4;
+
+    -- Demon wins if no edges remain and Traveler has not reached vertex 4
+    demon_wins := remaining_edges = 0 & traveler != 4;
+
+ASSIGN
+    -- Initial state: all edges are present, Traveler starts at vertex 1
+    init(edge12) := TRUE;
+    init(edge13) := TRUE;
+    init(edge14) := TRUE;
+    init(edge23) := TRUE;
+    init(edge24) := TRUE;
+    init(edge34) := TRUE;
+    init(traveler) := 1;
+    init(turn) := 0;
+    init(game_state) := 0; -- Game starts as ongoing
+
+    -- Traveler's move: can stay or move to an adjacent vertex
+    next(traveler) := case
+        game_state != 0 : traveler; -- Game over, no more moves
+        turn = 0 & traveler = 1 & edge12 : 2;
+        turn = 0 & traveler = 1 & edge13 : 3;
+        turn = 0 & traveler = 1 & edge14 : 4;
+        turn = 0 & traveler = 2 & edge12 : 1;
+        turn = 0 & traveler = 2 & edge23 : 3;
+        turn = 0 & traveler = 2 & edge24 : 4;
+        turn = 0 & traveler = 3 & edge13 : 1;
+        turn = 0 & traveler = 3 & edge23 : 2;
+        turn = 0 & traveler = 3 & edge34 : 4;
+        turn = 0 & traveler = 4 & edge14 : 1;
+        turn = 0 & traveler = 4 & edge24 : 2;
+        turn = 0 & traveler = 4 & edge34 : 3;
+        TRUE : traveler; -- Stay in the same position
+    esac;
+
+    -- Demon's move: must delete an edge unless no edges remain
+    next(edge12) := case
+        game_state != 0 : edge12; -- Game over, no more moves
+        turn = 1 & edge12 : {TRUE, FALSE};
+        TRUE : edge12;
+    esac;
+    next(edge13) := case
+        game_state != 0 : edge13; -- Game over, no more moves
+        turn = 1 & edge13 : {TRUE, FALSE};
+        TRUE : edge13;
+    esac;
+    next(edge14) := case
+        game_state != 0 : edge14; -- Game over, no more moves
+        turn = 1 & edge14 : {TRUE, FALSE};
+        TRUE : edge14;
+    esac;
+    next(edge23) := case
+        game_state != 0 : edge23; -- Game over, no more moves
+        turn = 1 & edge23 : {TRUE, FALSE};
+        TRUE : edge23;
+    esac;
+    next(edge24) := case
+        game_state != 0 : edge24; -- Game over, no more moves
+        turn = 1 & edge24 : {TRUE, FALSE};
+        TRUE : edge24;
+    esac;
+    next(edge34) := case
+        game_state != 0 : edge34; -- Game over, no more moves
+        turn = 1 & edge34 : {TRUE, FALSE};
+        TRUE : edge34;
+    esac;
+
+    -- Switch turns
+    next(turn) := case
+        game_state != 0 : turn; -- Game over, no more turns
+        turn = 0 : 1;
+        turn = 1 : 0;
+    esac;
+
+    -- Update game state
+    next(game_state) := case
+        game_state != 0 : game_state; -- Game over, state remains unchanged
+        traveler_wins : 1; -- Traveler wins
+        demon_wins : 2; -- Demon wins
+        TRUE : 0; -- Game continues
+    esac;
+
+
+TRANS
+    -- Demon must delete exactly one edge unless no edges remain
+    (turn = 1 & remaining_edges > 0) -> 
+        ( (next(edge12) != edge12 & next(edge13) = edge13 & next(edge14) = edge14 &
+          next(edge23) = edge23 & next(edge24) = edge24 & next(edge34) = edge34 )
+        |
+        ( next(edge12) = edge12 & next(edge13) != edge13 & next(edge14) = edge14 &
+          next(edge23) = edge23 & next(edge24) = edge24 & next(edge34) = edge34 )
+        |
+        ( next(edge12) = edge12 & next(edge13) = edge13 & next(edge14) != edge14 &
+          next(edge23) = edge23 & next(edge24) = edge24 & next(edge34) = edge34 )
+        |
+        ( next(edge12) = edge12 & next(edge13) = edge13 & next(edge14) = edge14 &
+          next(edge23) != edge23 & next(edge24) = edge24 & next(edge34) = edge34 )
+        |
+        ( next(edge12) = edge12 & next(edge13) = edge13 & next(edge14) = edge14 &
+          next(edge23) = edge23 & next(edge24) != edge24 & next(edge34) = edge34 )
+        |
+        ( next(edge12) = edge12 & next(edge13) = edge13 & next(edge14) = edge14 &
+          next(edge23) = edge23 & next(edge24) = edge24 & next(edge34) != edge34 ));
+-- Specification to check if Traveler can win
+CTLSPEC
+    !EF (traveler = 4);
+
+CTLSPEC
+    !EF (traveler = 4 | game_state = 2);
+-- Specification to check if Demon can win
+-- SPEC
+-- EF (game_state = 2);
