@@ -1,7 +1,8 @@
 # Sabotage-Game-For-A-Winning-Instance-Of-Traveler #
 # Sabotage Game on K4 in NuSMV
 
-This project models the Sabotage game on the complete graph K4 (4 vertices) using NuSMV. The game is played between a Traveler and a Demon. The Traveler aims to visit all vertices, while the Demon tries to prevent this by removing edges.
+This project models the Sabotage game on the complete graph K4 (4 vertices) using NuSMV. The game is played between a Traveler and a Demon. The Traveler aims to reach any one of
+destination vertices((V4), while the Demon tries to prevent this by removing edges.
 
 ## Game Rules
 
